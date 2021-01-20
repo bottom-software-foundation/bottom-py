@@ -11,7 +11,7 @@ SECTION_SEPERATOR = '👉👈'
 
 
 def to_bottom(text: str) -> str:
-    out = b''
+    out = bytearray()
 
     for char in text.encode():
         while char != 0:
