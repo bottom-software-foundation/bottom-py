@@ -27,7 +27,7 @@ def to_bottom(text: str) -> str:
 
 
 def from_bottom(text: str) -> str:
-    out = ''
+    out = bytearray()
     text = text.strip().removesuffix(SECTION_SEPERATOR)
 
     if not all(c in CHARACTER_VALUES.values() for c in text.replace(SECTION_SEPERATOR, '')):
@@ -40,6 +40,6 @@ def from_bottom(text: str) -> str:
         for emoji in char:
             sub += rev_mapping[emoji]
 
-        out += chr(sub)
+        out += sub.to_bytes(1, 'big')
 
-    return out
+    return out.decode()
