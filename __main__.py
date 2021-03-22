@@ -1,13 +1,13 @@
 import argparse
 import os
 
-from .bottom import from_bottom, to_bottom
+from bottom import encode, decode
 
 parser = argparse.ArgumentParser(
     description='Tool for translating between bottom and human readable text'
 )
 parser.add_argument(
-    '--from-bottom',
+    '--regress',
     default=False,
     const=True,
     action='store_const'
@@ -21,10 +21,10 @@ while True:
     try:
         text = args.text or input()
 
-        if args.from_bottom:
-            print(from_bottom(text))
+        if args.regress:
+            print(decode(text))
         else:
-            print(to_bottom(text))
+            print(encode(text))
 
         if os.isatty(0):
             break

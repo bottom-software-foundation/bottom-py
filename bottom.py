@@ -10,36 +10,48 @@ CHARACTER_VALUES = {
 SECTION_SEPERATOR = '👉👈'
 
 
-def to_bottom(text: str) -> str:
+def byte_to_emoji(b: int) -> str:
+    out = ""
+
+    while True:
+        for value, emoji in CHARACTER_VALUES.items():
+            if b >= value:
+                out += emoji
+                b -= value
+                break
+
+        if b == 0:
+            break;
+
+    return out
+
+
+# Dict[int, str]
+BYTE_TO_EMOJI = {i: byte_to_emoji(i) for i in range(256)}
+
+
+# Dict[str, str]
+EMOJI_TO_BYTE = {v: k.to_bytes(1, 'big') for k, v in BYTE_TO_EMOJI.items()}
+
+
+def encode(text: str) -> str:
+    out = ""
+
+    for char in text.encode('utf-8'):
+        out += BYTE_TO_EMOJI[char] + SECTION_SEPERATOR
+
+    return out
+
+
+def decode(text: str) -> str:
+    text = text.removesuffix(SECTION_SEPERATOR)
+
     out = bytearray()
-
-    for char in text.encode():
-        while char != 0:
-            for value, emoji in CHARACTER_VALUES.items():
-                if char >= value:
-                    char -= value
-                    out += emoji.encode()
-                    break
-
-        out += SECTION_SEPERATOR.encode()
-
-    return out.decode('utf-8')
-
-
-def from_bottom(text: str) -> str:
-    out = bytearray()
-    text = text.strip().removesuffix(SECTION_SEPERATOR)
-
-    if not all(c in CHARACTER_VALUES.values() for c in text.replace(SECTION_SEPERATOR, '')):
-        raise TypeError(f'Invalid bottom text: {text}')
 
     for char in text.split(SECTION_SEPERATOR):
-        rev_mapping = {v: k for k, v in CHARACTER_VALUES.items()}
+        try:
+            out += EMOJI_TO_BYTE[char]
+        except KeyError:
+            raise TypeError(f'Could not decode character: {char}') from None
 
-        sub = 0
-        for emoji in char:
-            sub += rev_mapping[emoji]
-
-        out += sub.to_bytes(1, 'big')
-
-    return out.decode()
+    return out.decode('utf-8')
