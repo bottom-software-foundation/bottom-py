@@ -1,45 +1,52 @@
+import io
+
+__all__ = ("to_bottom", "from_bottom")
+
+
 CHARACTER_VALUES = {
     200: "🫂",
     50: "💖",
     10: "✨",
     5: "🥺",
     1: ",",
-    0: "❤️"
+    0: "❤️",
 }
 
-SECTION_SEPERATOR = '👉👈'
+SECTION_SEPERATOR = "👉👈"
 
 
-def to_bottom(text: str) -> str:
-    out = bytearray()
+def to_bottom(text: io.TextIOWrapper) -> str:
+    out = io.BytesIO()
 
-    for char in text.encode():
+    for char in text.read().encode():
         while char != 0:
             for value, emoji in CHARACTER_VALUES.items():
                 if char >= value:
                     char -= value
-                    out += emoji.encode()
+                    out.write(emoji.encode())
                     break
 
-        out += SECTION_SEPERATOR.encode()
+        out.write(SECTION_SEPERATOR.encode())
 
-    return out.decode('utf-8')
+    return out.getvalue().decode("utf-8")
 
 
-def from_bottom(text: str) -> str:
-    out = bytearray()
-    text = text.strip().removesuffix(SECTION_SEPERATOR)
+def from_bottom(text: io.TextIOWrapper) -> str:
+    out = io.BytesIO()
+    bottom = "".join(text.read().strip().split(SECTION_SEPERATOR))
 
-    if not all(c in CHARACTER_VALUES.values() for c in text.replace(SECTION_SEPERATOR, '')):
-        raise TypeError(f'Invalid bottom text: {text}')
+    if not all(
+        c in CHARACTER_VALUES.values() for c in bottom.replace(SECTION_SEPERATOR, "")
+    ):
+        raise TypeError(f"Invalid bottom text: {text}")
 
-    for char in text.split(SECTION_SEPERATOR):
+    for char in bottom.split(SECTION_SEPERATOR):
         rev_mapping = {v: k for k, v in CHARACTER_VALUES.items()}
 
         sub = 0
         for emoji in char:
             sub += rev_mapping[emoji]
 
-        out += sub.to_bytes(1, 'big')
+        out.write(sub.to_bytes(1, "big"))
 
-    return out.decode()
+    return out.getvalue().decode()
